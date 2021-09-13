@@ -2,7 +2,6 @@
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using HepsiYemek.Enums;
 
 namespace HepsiYemek.Entities
@@ -19,12 +18,13 @@ namespace HepsiYemek.Entities
 
         public string Description { get; set; }
 
+        [BsonRepresentation(BsonType.ObjectId)]
         public string CategoryId { get; set; }
 
         [Required]
         public decimal Price { get; set; }
 
-        [Required, DefaultValue(CurrencyType.TL)]
+        [Required, BsonDefaultValue(CurrencyType.TL)]
         public CurrencyType Currency { get; set; }
 
         //public virtual Category Category { get; set; }

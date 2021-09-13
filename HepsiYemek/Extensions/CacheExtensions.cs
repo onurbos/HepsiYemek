@@ -1,13 +1,21 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
+using MongoDB.Bson;
 using System;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace HepsiYemek.Extensions
 {
-    public static class CacheExtensions
+    public interface ICacheExtensions
     {
-        public static async Task SetRecordAsync<T>(IDistributedCache cache,
+        Task SetRecordAsync<T>(IDistributedCache cache, string recordId, T data, TimeSpan? unUsedExpireTime = null);
+        Task<BsonDocument> GetRecordAsync(IDistributedCache cache, string recordId);
+        Task Remove(IDistributedCache cache, string recordId);
+    }
+
+
+    public abstract class CacheExtensions : ICacheExtensions
+    {
+        public async Task SetRecordAsync<T>(IDistributedCache cache,
             string recordId,
             T data,
             TimeSpan? unUsedExpireTime = null)
@@ -18,26 +26,20 @@ namespace HepsiYemek.Extensions
                 SlidingExpiration = unUsedExpireTime
             };
 
-            var jsonData = JsonSerializer.Serialize(data);
-            await cache.SetStringAsync(recordId, jsonData, options);
+            await cache.SetStringAsync(recordId, data.ToString(), options);
         }
 
-        public static async Task<T> GetRecordAsync<T>(IDistributedCache cache, string recordId)
+        public async Task<BsonDocument> GetRecordAsync(IDistributedCache cache, string recordId)
         {
+            var data = await cache.GetStringAsync(recordId);
 
-            var jsonData = await cache.GetStringAsync(recordId);
-
-            if (jsonData is null)
-            {
-                //await SetRecordAsync();
-                return default(T);
-            }
-
-            return JsonSerializer.Deserialize<T>(jsonData);
+            return data is null ? null : BsonDocument.Parse(data);
         }
 
-        public static async Task Remove(IDistributedCache cache, string recordId)
+        public async Task Remove(IDistributedCache cache, string recordId)
         {
+            var result = await cache.GetAsync(recordId);
+            if (result == null) return;
             await cache.RemoveAsync(recordId);
         }
     }

@@ -1,6 +1,6 @@
 ﻿namespace HepsiYemek.Data.Context
 {
-    public class DbConfig
+    public abstract class DbConfig
     {
         public string DataBaseName { get; set; }
         public string CollectionName { get; set; }

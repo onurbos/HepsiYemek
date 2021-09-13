@@ -7,7 +7,7 @@ using HepsiYemek.Entities;
 
 namespace HepsiYemek.Repositories
 {
-    public class CategoryRepository :ICategoryRepository
+    public class CategoryRepository : ICategoryRepository
     {
 
         private readonly IMongoCollection<Category> _collection;
@@ -29,15 +29,16 @@ namespace HepsiYemek.Repositories
             _collection.DeleteOne(x => x.Id == id);
         }
 
-        public Category Get(string id) => _collection.Find(x => x.Id == id).First();
+        public BsonDocument GetByIdAsBsonDoc(string id) => _collection.Find(x => x.Id == id).FirstOrDefault()?.ToBsonDocument();
 
         public List<Category> GetList() => _collection.Find(x => true).ToList();
 
         public Category Update(Category category)
         {
-            Get(category.Id);
             _collection.ReplaceOne(x => x.Id == category.Id, category);
             return category;
         }
+        
+        public Category Get(string id) => _collection.Find(x => x.Id == id).FirstOrDefault();
     }
 }
